@@ -54,8 +54,8 @@ class Env(object):
         if self.capacity==0 and self.input_data[:,-1].any():
             self.path.append([depot])
             reward = self.get_reward(cust_id)
-        game_over = self.is_over()
-        return self.input_data.copy(), self.path.copy(), reward, game_over
+        done = self.is_over()
+        return self.input_data.copy(), self.path.copy(), reward, done
     
     def get_reward(self, cust_id):
         
