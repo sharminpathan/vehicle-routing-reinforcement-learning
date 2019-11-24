@@ -51,7 +51,7 @@ class Env(object):
         self.update_state(cust_id)
         if not self.was_zero:
             self.path.append(self.input_data[cust_id,:-1].tolist())
-            reward = self.get_reward(cust_id)
+        reward = self.get_reward(cust_id)
         if self.capacity==0 and self.input_data[:,-1].any():
             self.path.append([depot])
             reward = self.get_reward(cust_id)
