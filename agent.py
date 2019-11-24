@@ -152,9 +152,15 @@ class Agent(object):
         if np.random.random() < self.epsilon:
             action=np.random.randint(0, self.num_actions)
             act_array=np.zeros((self.num_actions))
+            act_array[:]=0.1
             act_array[action]=1
-            return act_array
-        return self.actor_model.predict([np.expand_dims(input_tm1, axis=0), np.expand_dims(path_tm1, axis=1)])[0]
+        else: 
+            act_array=self.actor_model.predict([np.expand_dims(input_tm1, axis=0), np.expand_dims(path_tm1, axis=1)])[0]
+            
+        while(input_tm1[np.argmax(act_array,-1]==0):
+            act_array[np.argmax(act_array)]=0
+                        
+        return act_array
         
     
     
