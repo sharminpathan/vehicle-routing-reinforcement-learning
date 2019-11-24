@@ -35,8 +35,8 @@ class Env(object):
             self.was_zero=True
             return
         if self.capacity>self.input_data[cust_id,-1]:
-            self.input_data[cust_id,-1]=0
             self.capacity=self.capacity-self.input_data[cust_id,-1]
+            self.input_data[cust_id,-1]=0
         else:
             self.input_data[cust_id,-1]=self.input_data[cust_id,-1]-self.capacity
             self.capacity=max(0,self.capacity-self.input_data[cust_id,-1])
@@ -54,6 +54,7 @@ class Env(object):
         if self.capacity==0 and self.input_data[:,-1].any():
             self.path.append([depot])
             reward = self.get_reward(cust_id)
+            self.capacity=15
         done = self.is_over()
         return self.input_data.copy(), self.path.copy(), reward, done
     
