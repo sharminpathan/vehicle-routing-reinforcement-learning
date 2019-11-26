@@ -97,7 +97,7 @@ class Agent(object):
             grads = self.sess.run(self.critic_grads, feed_dict={
                 self.critic_actor_input:  np.expand_dims(input_state_t, axis=0),
                 self.critic_decoder_input: np.expand_dims(path_state_t, axis=0),
-                self.critic_action_input: np.expand_dims(action_t, axis=0)
+                self.critic_action_input: predicted_action
             })[0]
 
             self.sess.run(self.optimize, feed_dict={
