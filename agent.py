@@ -27,7 +27,7 @@ class Agent(object):
 
         actor_model_weights = self.actor_model.trainable_weights
         
-        self.actor_grads = tf.gradients(self.actor_model.output, actor_model_weights, -self.actor_critic_grad) # dC/dA (from actor)
+        self.actor_grads = tf.gradients(self.actor_model.output, actor_model_weights, self.actor_critic_grad) # dC/dA (from actor)
         grads = zip(self.actor_grads, actor_model_weights)
         self.optimize = tf.train.AdamOptimizer(self.learning_rate).apply_gradients(grads)
         
