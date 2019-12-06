@@ -8,11 +8,12 @@ import math
 import json
 from keras.layers import Activation, Conv1D, Dense, Embedding, Flatten, Input, LSTM, Masking, concatenate
 
+
 class Agent(object):
     def __init__(self, env, sess):
         self.env  = env
         self.sess = sess        
-        self.learning_rate = 0.001
+        self.learning_rate = 0.00001
         self.epsilon = 1.0
         self.epsilon_decay = .995
         self.gamma = .95
@@ -55,11 +56,11 @@ class Agent(object):
         decoder_out=LSTM(128, dropout=0.1) (decoder)
 
         actor=concatenate([actor_c, decoder_out])
-        actor_critic_input=Activation('tanh') (actor)
+        actor=Activation('tanh') (actor)
         actor_out=Dense(self.num_actions, activation='softmax') (actor)
         
         model = keras.models.Model(input=[actor_in,decoder_in], output=actor_out)
-        adam  = Adam(lr=0.001)
+        adam  = Adam(lr=0.00001, beta_1=0.9, beta_2=0.999)
         model.compile(loss="mse", optimizer=adam)
         return actor_in, decoder_in, model
     
@@ -84,7 +85,7 @@ class Agent(object):
         critic_out=Dense(1)(merged_h1)
         model=keras.models.Model(input=[actor_in, decoder_in, action_input], output=critic_out)
         
-        adam=Adam(lr=0.001)
+        adam=Adam(lr=0.00001, beta_1=0.9, beta_2=0.999)
         model.compile(loss="mse", optimizer=adam)
         return actor_in, decoder_in, action_input, model
     
@@ -126,22 +127,23 @@ class Agent(object):
         samples = random.sample(self.memory, batch_size)
         self._train_critic(samples)
         self._train_actor(samples)
+        self.update_target()
 
     def _update_actor_target(self):
         actor_model_weights  = self.actor_model.get_weights()
-        actor_target_weights = self.target_critic_model.get_weights()
+        actor_target_weights = self.target_actor_model.get_weights()
 
         for i in range(len(actor_target_weights)):
             actor_target_weights[i] = actor_model_weights[i]
-        self.target_critic_model.set_weights(actor_target_weights)
+        self.target_actor_model.set_weights(actor_target_weights)
 
     def _update_critic_target(self):
         critic_model_weights  = self.critic_model.get_weights()
-        critic_target_weights = self.critic_target_model.get_weights()
+        critic_target_weights = self.target_critic_model.get_weights()
 
         for i in range(len(critic_target_weights)):
             critic_target_weights[i] = critic_model_weights[i]
-        self.critic_target_model.set_weights(critic_target_weights)
+        self.target_critic_model.set_weights(critic_target_weights)
 
     def update_target(self):
         self._update_actor_target()
@@ -154,13 +156,14 @@ class Agent(object):
             act_array=np.zeros((self.num_actions))
             act_array[:]=0.1
             act_array[action]=1
-        else: 
+        else:
             act_array=self.actor_model.predict([np.expand_dims(input_tm1, axis=0), np.expand_dims(path_tm1, axis=1)])[0]
-            
-        while(input_tm1[np.argmax(act_array,-1]==0):
-            act_array[np.argmax(act_array)]=0
-                        
-        return act_array
         
+        while(input_tm1[np.argmax(act_array),-1]==0):
+            act_array[np.argmax(act_array)]=0
+            
+        return act_array
     
+    def predict(self, input_tm1, path_tm1):
+        return self.actor_model.predict([np.expand_dims(input_tm1, axis=0), np.expand_dims(path_tm1, axis=0)])[0]
     
