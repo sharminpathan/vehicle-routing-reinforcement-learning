@@ -14,7 +14,7 @@ class Env(object):
         self.was_zero=False
         self.total_reward=0
         rnd=np.random
-        x = rnd.uniform(0,1,size=(self.n_cust,2))
+        x = rnd.uniform(1,100,size=(self.n_cust,2))
         d = rnd.randint(1,10,[self.n_cust,1])
         self.depot=[rnd.uniform(0,1),rnd.uniform(0,1)]
         self.input_data = np.concatenate([x,d],1)
@@ -34,14 +34,17 @@ class Env(object):
         if self.input_data[cust_id,-1]==0:
             self.was_zero=True
             return
-        if self.capacity>self.input_data[cust_id,-1]:
-            self.capacity=self.capacity-self.input_data[cust_id,-1]
-            self.input_data[cust_id,-1]=0
         else:
-            self.input_data[cust_id,-1]=self.input_data[cust_id,-1]-self.capacity
-            self.capacity=max(0,self.capacity-self.input_data[cust_id,-1])
+            self.was_zero=False
+            if self.capacity>self.input_data[cust_id,-1]:
+                self.capacity=self.capacity-self.input_data[cust_id,-1]
+                self.input_data[cust_id,-1]=0
+            else:
+                self.input_data[cust_id,-1]=self.input_data[cust_id,-1]-self.capacity
+                self.capacity=max(0,self.capacity-self.input_data[cust_id,-1])
             
     def is_over(self):
+        #print(self.input_data[:,-1])
         return not self.input_data[:,-1].any()
     
     def observe(self):
@@ -53,18 +56,19 @@ class Env(object):
             self.path.append(self.input_data[cust_id,:-1].tolist())
         reward = self.get_reward(cust_id)
         if self.capacity==0 and self.input_data[:,-1].any():
-            self.path.append([depot])
+            self.path.append(self.depot)
             reward = self.get_reward(cust_id)
             self.capacity=15
-        done = self.is_over()
-        return self.input_data.copy(), self.path.copy(), reward, done
+        game_over = self.is_over()
+        return self.input_data.copy(), self.path.copy(), reward, game_over
     
     def get_reward(self, cust_id):
         
         if self.was_zero:
-            return -100
+            return 0
         
         dist = float(math.sqrt( ((self.path[-2][0]-self.path[-1][0])**2) + ((self.path[-2][1]-self.path[-1][1])**2) ))
         if self.is_over():
-            dist=float(dist+math.sqrt( ((self.path[-2][0]-self.path[-1][0])**2) + ((self.path[-2][1]-self.path[-1][1])**2) ))   
-        return -dist
+            dist=float(dist+math.sqrt( ((self.path[-2][0]-self.path[-1][0])**2) + ((self.path[-2][1]-self.path[-1][1])**2) )) 
+        #self.reward=self.reward-dist*100
+        return dist
